@@ -98,7 +98,14 @@ angular.module("internationalPhoneNumber", [])
       if !value
         return value
 
-      value.replace(/[^\d]/g, '')
+      selectedCountryData = element.intlTelInput 'getSelectedCountryData'
+      dialCode = selectedCountryData?.dialCode
+      if value.slice(0, dialCode.length) == dialCode || value[0] == '+' || !options.nationalMode
+        return value.replace(/[^\d]/g, '')
+      else
+        if value[0] == '0'
+          return dialCode + value.slice(1).replace(/[^\d]/g, '')
+        return dialCode + value.replace(/[^\d]/g, '')
 
     ctrl.$validators.internationalPhoneNumber = (value) ->
       selectedCountry = element.intlTelInput('getSelectedCountryData')

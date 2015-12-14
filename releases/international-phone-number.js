@@ -12,6 +12,7 @@
     numberType: "MOBILE",
     onlyCountries: void 0,
     preferredCountries: ['us', 'gb'],
+    skipUtilScriptDownload: false,
     utilsScript: ""
   }).directive('internationalPhoneNumber', [
     '$timeout', 'ipnConfig', function($timeout, ipnConfig) {
@@ -68,7 +69,7 @@
                 element.val(newValue);
               }
               element.intlTelInput(options);
-              if (!(attrs.skipUtilScriptDownload !== void 0 || options.utilsScript)) {
+              if (!(options.skipUtilScriptDownload || attrs.skipUtilScriptDownload !== void 0 || options.utilsScript)) {
                 element.intlTelInput('loadUtils', '/bower_components/intl-tel-input/lib/libphonenumber/build/utils.js');
               }
               return watchOnce();
@@ -87,10 +88,20 @@
             return element.val();
           });
           ctrl.$parsers.push(function(value) {
+            var dialCode, selectedCountryData;
             if (!value) {
               return value;
             }
-            return value.replace(/[^\d]/g, '');
+            selectedCountryData = element.intlTelInput('getSelectedCountryData');
+            dialCode = selectedCountryData != null ? selectedCountryData.dialCode : void 0;
+            if (value.slice(0, dialCode.length) === dialCode || value[0] === '+' || !options.nationalMode) {
+              return value.replace(/[^\d]/g, '');
+            } else {
+              if (value[0] === '0') {
+                return dialCode + value.slice(1).replace(/[^\d]/g, '');
+              }
+              return dialCode + value.replace(/[^\d]/g, '');
+            }
           });
           ctrl.$validators.internationalPhoneNumber = function(value) {
             var selectedCountry;
